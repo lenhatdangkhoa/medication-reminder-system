@@ -6,5 +6,6 @@ const express = require('express');
 const router = express.Router();
 
 router.post("/call", controller.startCall);
+router.post("/voice", controller.handleVoiceWebhook);
 
 module.exports = router;
