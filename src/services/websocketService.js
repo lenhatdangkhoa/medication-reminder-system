@@ -5,8 +5,9 @@ const Deepgram = require('@deepgram/sdk');
 require('dotenv').config();
 
 function startWebSocket(server) {
-    const ws = new WebSocket.Server({server, path: '/stream'});
-    ws.on("connection", (twilioSocket) => {
+    try {
+    const wss = new WebSocket.Server({server, path: '/stream'});
+    wss.on("connection", (twilioSocket) => {
         console.log("Connected to Twilio");
 
         // Connect to Deepgram
@@ -43,6 +44,9 @@ function startWebSocket(server) {
             deepgramSocket.close();
         });
     });
+    } catch (error) {
+        console.error("Error starting WebSocket server:", error);
+    }
 }
 
 module.exports = { startWebSocket };
