@@ -14,10 +14,11 @@ const twilioPhoneNumber = process.env.TWILIO_NUMBER;
 
 // Create a call using Twilio Voice API
 async function createCall(clientNumber) {
+    console.log(`URL: https://${process.env.NGROK_URL}/voice`);
     const call = await client.calls.create({
       from: twilioPhoneNumber,
       to: clientNumber,
-      url: "https://ee1c-198-137-18-103.ngrok-free.app/voice", // You can change the url to your ngrok url, keep the /voice
+      url: `https://${process.env.NGROK_URL}/voice`, // You can change the url to your ngrok url, keep the /voice
     });
     console.log(`Calling the client at ${clientNumber}`);
     return call;
@@ -31,7 +32,8 @@ function createCallHandler() {
         const twiml = new voiceResponse();
 
         // Start streaming audio, you can please the url with yourn own ngrok url and keep /stream
-        twiml.start().stream("wss://ee1c-198-137-18-103.ngrok-free.app/stream");
+        twiml.start().stream(`wss://${process.env.NGROK_URL}/stream`);
+        console.log("stream started");
         twiml.say('Hello, this is a reminder from your healthcare provider to confirm your medications for the day. \
         Please confirm if you have taken your Aspirin, Cardivol, and Metformin today.');
         res.writeHead(200, {'Content-Type': 'text/xml'});

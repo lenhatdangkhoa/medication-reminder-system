@@ -5,6 +5,8 @@ const Deepgram = require('@deepgram/sdk');
 require('dotenv').config();
 
 function startWebSocket(server) {
+    deepgramReady = false;
+    const audioBufferQueue = [];
     try {
     const wss = new WebSocket.Server({server, path: '/stream'});
     wss.on("connection", (twilioSocket) => {
@@ -17,7 +19,13 @@ function startWebSocket(server) {
             },
         });
         deepgramSocket.on("open", () => {
+            deepgramReady = true;
             console.log("Connected to Deepgram");
+            
+            // If there are any audio buffers in the queue, flush them out
+            audioBufferQueue.forEach((audio) => {
+                deepgramSocket.send(audio);
+            });
         });
 
         // Send voice data to Deepgram
@@ -25,7 +33,11 @@ function startWebSocket(server) {
             const data = JSON.parse(message);
             if (data.event === "media") {
                 const audio = Buffer.from(data.media.payload, "base64");
-                deepgramSocket.send(audio);
+                if (deepgramReady) {
+                    deepgramSocket.send(audio);
+                  } else {
+                    audioBufferQueue.push(audio);
+                  }
             }
         });
 

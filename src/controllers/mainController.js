@@ -1,5 +1,6 @@
 const {createCall} = require('../services/twilioService');
 const twilio = require('twilio');
+require("dotenv").config();
 async function startCall(req, res) {
     try {
         const {clientNumber} = req.body
@@ -18,9 +19,10 @@ async function startCall(req, res) {
 
 function handleVoiceWebhook (req, res) {
     const response = new twilio.twiml.VoiceResponse();
-  
+    
+    console.log("starting webhook")
     response.start().stream({
-      url: "wss://ee1c-198-137-18-103.ngrok-free.app/stream", // You can change the url to your ngrok url, keep the /stream
+      url: `wss://${process.env.NGROK_URL}/stream`, // You can change the url to your ngrok url, keep the /stream
     });
   
     response.say('Hello, this is a reminder from your healthcare provider to confirm your medications for the day.\
