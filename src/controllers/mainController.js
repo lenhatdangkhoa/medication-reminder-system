@@ -1,6 +1,7 @@
 const {createCall} = require('../services/twilioService');
 const twilio = require('twilio');
 require("dotenv").config();
+
 async function startCall(req, res) {
     try {
         const {clientNumber} = req.body
@@ -15,6 +16,20 @@ async function startCall(req, res) {
         console.error('Error initiating call:', error);
         res.status(500).send('Error initiating call');
     }
+}
+async function handleCallStatus(req, res) {
+    const { CallSid, AnsweredBy, Status, Duration} = req.body;
+    console.log(Status);
+    if (AnsweredBy === "machine_start") {
+        console.log("Sending Voicemail");
+    }
+    res.status(200).end(); // always respond 200 OK
+}
+
+async function handleVoicemail(req, res) {
+    const twiml = new twilio.twiml.VoiceResponse();
+    twiml.say("");
+    res.type('text/xml').send(twiml.toString());
 }
 
 function handleVoiceWebhook (req, res) {
@@ -32,4 +47,4 @@ function handleVoiceWebhook (req, res) {
     res.send(response.toString());
   };
 
-module.exports = {startCall,handleVoiceWebhook};
+module.exports = {startCall,handleVoiceWebhook, handleCallStatus};

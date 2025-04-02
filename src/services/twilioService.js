@@ -18,7 +18,10 @@ async function createCall(clientNumber) {
     const call = await client.calls.create({
       from: twilioPhoneNumber,
       to: clientNumber,
-      url: `https://${process.env.NGROK_URL}/voice`, // You can change the url to your ngrok url, keep the /voice
+      url: `https://${process.env.NGROK_URL}/voice`, 
+      statusCallback: `https://${process.env.NGROK_URL}/status`,
+      statusCallbackEvent: ["answered", "failed", "busy", "no-answer", "cancelled", "completed"], 
+      machineDetection: "Enable",
     });
     console.log(`Calling the client at ${clientNumber}`);
     return call;
