@@ -1,9 +1,9 @@
 // Websocket service for real-time TTS and STT
 
 const WebSocket = require('ws');
-const Deepgram = require('@deepgram/sdk');
+const {createClient, LiveTranscriptionEvents} = require('@deepgram/sdk');
 require('dotenv').config();
-
+const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
 function startWebSocket(server) {
     deepgramReady = false;
     const audioBufferQueue = [];
@@ -13,19 +13,31 @@ function startWebSocket(server) {
         console.log("Connected to Twilio");
 
         // Connect to Deepgram
-        const deepgramSocket = new WebSocket("wss://api.deepgram.com/v1/listen", {
-            headers: {
-                Authorization: `Token ${process.env.DEEPGRAM_API_KEY}`,
-            },
-        });
-        deepgramSocket.on("open", () => {
+        const deepgramSocket = deepgram.listen.live({
+            encoding: "mulaw",  
+            sample_rate: 8000,
+            language: "en-US",
+          });
+
+        deepgramSocket.on(LiveTranscriptionEvents.Open, () => {
             deepgramReady = true;
             console.log("Connected to Deepgram");
-            
-            // If there are any audio buffers in the queue, flush them out
-            audioBufferQueue.forEach((audio) => {
-                deepgramSocket.send(audio);
+            deepgramSocket.on(LiveTranscriptionEvents.Close, () => {
+                console.log("Deepgram closed.");
             });
+            deepgramSocket.on(LiveTranscriptionEvents.Transcript, (data) => {
+                console.log(data.channel.alternatives[0].transcript);
+              });
+            deepgramSocket.on(LiveTranscriptionEvents.Metadata, (data) => {
+                console.log(data);
+              });
+            deepgramSocket.on(LiveTranscriptionEvents.Error, (err) => {
+                console.error(err);
+            });
+            // If there are any audio buffers in the queue, flush them out
+            // audioBufferQueue.forEach((audio) => {
+            //     deepgramSocket.send(audio);
+            // });
         });
 
         // Send voice data to Deepgram
@@ -40,20 +52,9 @@ function startWebSocket(server) {
                   }
             }
         });
-
-        // Transcribe audio from Deepgram
-        deepgramSocket.on("message", (message) => {
-            const data = JSON.parse(message);
-            const transcript = data.channel.alternatives[0].transcript;
-            if (transcript) {
-                console.log("Transcription:", transcript);
-            }
-        });
-
         // Close all connections 
         twilioSocket.on("close", () => {
             console.log("Disconnected from Twilio");
-            deepgramSocket.close();
         });
     });
     } catch (error) {

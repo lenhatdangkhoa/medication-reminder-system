@@ -27,7 +27,7 @@ function handleVoiceWebhook (req, res) {
   
     response.say('Hello, this is a reminder from your healthcare provider to confirm your medications for the day.\
         Please confirm if you have taken your Aspirin, Cardivol, and Metformin today.');
-  
+    response.pause({length: 5});
     res.type('text/xml');
     res.send(response.toString());
   };
