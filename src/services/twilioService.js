@@ -19,14 +19,25 @@ async function createCall(clientNumber) {
       from: twilioPhoneNumber,
       to: clientNumber,
       url: `https://${process.env.NGROK_URL}/voice`, 
-      statusCallback: `https://${process.env.NGROK_URL}/status`,
+      asyncAmdStatusCallback: `https://${process.env.NGROK_URL}/status`,
       statusCallbackEvent: ["answered", "failed", "busy", "no-answer", "cancelled", "completed"], 
-      machineDetection: "Enable",
+      machineDetection: 'Enable',
+      asyncAmd: true,
+      asyncAmdStatusCallbackMethod: 'POST',
     });
     console.log(`Calling the client at ${clientNumber}`);
     return call;
 }
-  
+
+async function sendVoicemail(clientNumber, Sid) {
+    await client.calls(Sid).update({
+      twiml: `<Response>
+        <Pause length="2"/>
+        <Say>We called to check on your medication but couldn't reach you. Please call us back or take your medications if you haven't done so.</Say>
+        <Say>Goodbye!</Say>
+      </Response>`,
+    });
+  }
 
 // Receive incoming calls
 const voiceResponse = twilio.twiml.VoiceResponse;
@@ -46,4 +57,4 @@ function createCallHandler() {
     console.log('Twilio webhook listening at http://127.0.0.1:1337/');
 }
 
-module.exports = {createCall, createCallHandler};
+module.exports = {createCall, createCallHandler, sendVoicemail};
