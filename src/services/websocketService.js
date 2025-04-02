@@ -11,14 +11,16 @@ const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
  * @param {Server} server - The HTTP server instance
  */
 function startWebSocket(server) {
-    deepgramReady = false;
+    deepgramReady = false; // Flag to check if Deepgram is ready
     let conversation = "";
-    const audioBufferQueue = [];
+    const audioBufferQueue = []; // Queue to store audio buffers before Deepgram is ready
 
     try {
+        // Create a WebSocket server
+        // Path is set to '/stream' to match Twilio webhook
         const wss = new WebSocket.Server({server, path: '/stream'});
+
         wss.on("connection", (twilioSocket) => {
-            console.log("Connected to Twilio");
 
             // Connect to Deepgram
             const deepgramSocket = deepgram.listen.live({
@@ -29,11 +31,12 @@ function startWebSocket(server) {
 
             deepgramSocket.on(LiveTranscriptionEvents.Open, () => {
                 deepgramReady = true;
-                console.log("Connected to Deepgram");
 
                 // Close the Deepgram socket when the Twilio socket closes
                 deepgramSocket.on(LiveTranscriptionEvents.Close, () => {
-                    console.log(`Conversation: "${conversation}"`);
+                    const unwanted = 'Hello, this is a reminder from your healthcare provider to confirm your medications for the day.\
+        Please confirm if you have taken your Aspirin, Cardivol, and Metformin today.'
+                    console.log(`Conversation: "${conversation.replace(unwanted, "")}"`);
                     console.log("Deepgram closed.");
                 });
 
@@ -76,6 +79,7 @@ function startWebSocket(server) {
                 console.log("Disconnected from Twilio");
             });
         });
+        
     } catch (error) {
         console.error("Error starting WebSocket server:", error);
     }
