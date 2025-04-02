@@ -14,29 +14,32 @@ const twilioPhoneNumber = process.env.TWILIO_NUMBER;
 
 // Create a call using Twilio Voice API
 async function createCall(clientNumber) {
-    console.log(`URL: https://${process.env.NGROK_URL}/voice`);
+    console.log(`URL of Twilio Call: https://${process.env.NGROK_URL}/voice`);
     const call = await client.calls.create({
       from: twilioPhoneNumber,
       to: clientNumber,
       url: `https://${process.env.NGROK_URL}/voice`, 
-      asyncAmdStatusCallback: `https://${process.env.NGROK_URL}/status`,
+      statusCallback: `https://${process.env.NGROK_URL}/status`,
       statusCallbackEvent: ["answered", "failed", "busy", "no-answer", "cancelled", "completed"], 
       machineDetection: 'Enable',
-      asyncAmd: true,
-      asyncAmdStatusCallbackMethod: 'POST',
     });
-    console.log(`Calling the client at ${clientNumber}`);
+    //console.log(`Calling the client at ${clientNumber}`);
     return call;
 }
 
-async function sendVoicemail(clientNumber, Sid) {
-    await client.calls(Sid).update({
-      twiml: `<Response>
-        <Pause length="2"/>
-        <Say>We called to check on your medication but couldn't reach you. Please call us back or take your medications if you haven't done so.</Say>
-        <Say>Goodbye!</Say>
-      </Response>`,
+async function sendReminder(clientNumber) {
+  try {
+    const result = await client.messages.create({
+      from: process.env.TWILIO_NUMBER,
+      to: clientNumber,                    
+      body: "We called to check on your medication but couldn't reach you. Please call us back or take your medications if you haven't done so.",
     });
+
+    console.log("Status: Voicemail/SMS sent");
+    return result;
+  } catch (error) {
+    console.error('Error sending SMS:', error.message);
+  }
   }
 
 // Receive incoming calls
@@ -57,4 +60,4 @@ function createCallHandler() {
     console.log('Twilio webhook listening at http://127.0.0.1:1337/');
 }
 
-module.exports = {createCall, createCallHandler, sendVoicemail};
+module.exports = {createCall, createCallHandler, sendReminder};

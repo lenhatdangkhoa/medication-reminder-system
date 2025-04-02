@@ -33,6 +33,7 @@ function startWebSocket(server) {
 
                 // Close the Deepgram socket when the Twilio socket closes
                 deepgramSocket.on(LiveTranscriptionEvents.Close, () => {
+                    console.log(`Conversation: "${conversation}"`);
                     console.log("Deepgram closed.");
                 });
 
@@ -50,10 +51,11 @@ function startWebSocket(server) {
                 deepgramSocket.on(LiveTranscriptionEvents.Error, (err) => {
                     console.error(err);
                 });
-                // If there are any audio buffers in the queue, flush them out
-                // audioBufferQueue.forEach((audio) => {
-                //     deepgramSocket.send(audio);
-                // });
+
+                //If there are any audio buffers in the queue, flush them out. Prevents audio loss
+                audioBufferQueue.forEach((audio) => {
+                    deepgramSocket.send(audio);
+                });
             });
 
             // Send voice data to Deepgram
