@@ -19,9 +19,7 @@ function startWebSocket(server) {
         // Create a WebSocket server
         // Path is set to '/stream' to match Twilio webhook
         const wss = new WebSocket.Server({server, path: '/stream'});
-
         wss.on("connection", (twilioSocket) => {
-
             // Connect to Deepgram
             const deepgramSocket = deepgram.listen.live({
                 encoding: "mulaw",  
@@ -36,8 +34,7 @@ function startWebSocket(server) {
                 deepgramSocket.on(LiveTranscriptionEvents.Close, () => {
                     const unwanted = 'Hello, this is a reminder from your healthcare provider to confirm your medications for the day.\
         Please confirm if you have taken your Aspirin, Cardivol, and Metformin today.'
-                    console.log(`Conversation: "${conversation.replace(unwanted, "")}"`);
-                    console.log("Deepgram closed.");
+                    console.log(`Conversation: "${conversation.replace(unwanted, "")}"`);     
                 });
 
                 // Listen for the transcript event and output them
@@ -76,7 +73,7 @@ function startWebSocket(server) {
 
             // Close Twilio Connection 
             twilioSocket.on("close", () => {
-                console.log("Disconnected from Twilio");
+                console.log("Waiting for Deepgram to close...");
             });
         });
         

@@ -1,4 +1,6 @@
-// Entry point of the Medication Reminder System
+/**
+ * The main application entry point for the Medication Reminder System.
+ */
 const app = require('./src/app');
 const {startWebSocket} = require('./src/services/websocketService');
 const {configureTwilioWebhook} = require('./src/services/twilioService');

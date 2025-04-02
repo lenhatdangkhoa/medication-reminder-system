@@ -36,13 +36,15 @@ async function startCall(req, res) {
  */
 async function handleCallStatus(req, res) {
 
-    const { AnsweredBy,CallStatus} = req.body;
+    const { AnsweredBy,CallStatus, CallSid} = req.body;
     if (CallStatus === "completed") {
         // If the call was answered by a machine or fax, send a reminder SMS
         if (AnsweredBy == "machine_start" || AnsweredBy == "fax") {
+            console.log("Call SID: ", CallSid);
             await sendReminder(req.body.To);
         }
         else {
+            console.log("Call SID: ", CallSid);
             console.log("Status: Answered");
         }
     }
